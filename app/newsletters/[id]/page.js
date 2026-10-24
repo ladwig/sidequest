@@ -1,8 +1,23 @@
+import fs from 'fs';
+import path from 'path';
 import { notFound } from 'next/navigation';
 import { NEWSLETTERS } from '@/lib/newsletters';
 import IllustratedButtons from '@/app/components/IllustratedButtons';
 import MiniMonsters from '@/app/components/MiniMonsters';
+import Gallery from './Gallery';
 import styles from './newsletter.module.css';
+
+// ponytail: no list to maintain — drop files into public/gallery/<section>/ and they show up
+function galleryPhotos(dir) {
+    try {
+        return fs.readdirSync(path.join(process.cwd(), 'public', 'gallery', dir))
+            .filter((f) => /\.(jpe?g|png|webp|gif|avif)$/i.test(f))
+            .sort()
+            .map((f) => `/gallery/${dir}/${encodeURIComponent(f)}`);
+    } catch {
+        return [];
+    }
+}
 
 export default async function NewsletterPage({ params }) {
     const { id } = await params;
@@ -49,6 +64,14 @@ export default async function NewsletterPage({ params }) {
                             <p key={i} className={styles.paragraph} {...(i === 0 ? { 'data-description': 'true' } : {})}>
                                 {content}
                             </p>
+                        );
+                    }
+                    if (block.type === 'gallery') {
+                        return (
+                            <div key={i} className={styles.galleries}>
+                                <Gallery title="sidequest 2026" srcs={galleryPhotos('event')} />
+                                <Gallery title="Buildup" srcs={galleryPhotos('buildup')} />
+                            </div>
                         );
                     }
                     if (block.type === 'images') {
